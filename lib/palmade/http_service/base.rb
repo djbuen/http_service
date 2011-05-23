@@ -22,18 +22,18 @@ module Palmade::HttpService
 
     # override this to provide consumer specific api config.
     #
-    def api_config(config)
-      config[DEFAULT_API_CONFIG_KEY]
+    def api_config(config = nil)
+      (config || @config)[DEFAULT_API_CONFIG_KEY]
     end
 
     # override this
-    def oauth_config(config)
-      config[DEFAULT_OAUTH_CONFIG_KEY]
+    def oauth_config(config = nil)
+      (config || @config)[DEFAULT_OAUTH_CONFIG_KEY]
     end
 
     # override this
     def oauth_echo_config(config)
-      config[DEFAULT_OAUTH_ECHO_CONFIG_KEY]
+      (config || @config)[DEFAULT_OAUTH_ECHO_CONFIG_KEY]
     end
 
     def boot!
@@ -65,18 +65,34 @@ module Palmade::HttpService
     end
 
     def get(path, query = nil)
-      raise_on_error(@http_service.get_json(path, query))
+      ServiceResponse.new(@http_service.get_json(path, query))
     end
 
     def post(path, params = nil, query = nil)
-      raise_on_error(@http_service.post_json(path, params, query))
+      ServiceResponse.new(@http_service.post_json(path, params, query))
     end
 
     def put(path, content, query = nil)
-      raise_on_error(@http_service.put_json(path, content, query))
+      ServiceResponse.new(@http_service.put_json(path, content, query))
     end
 
     def delete(path, query = nil)
+      ServiceResponse.new(@http_service.delete(path, query))
+    end
+
+    def get!(path, query = nil)
+      raise_on_error(@http_service.get_json(path, query))
+    end
+
+    def post!(path, params = nil, query = nil)
+      raise_on_error(@http_service.post_json(path, params, query))
+    end
+
+    def put!(path, content, query = nil)
+      raise_on_error(@http_service.put_json(path, content, query))
+    end
+
+    def delete!(path, query = nil)
       raise_on_error(@http_service.delete(path, query))
     end
 
@@ -87,12 +103,7 @@ module Palmade::HttpService
     protected
 
     def raise_on_error(resp, &block)
-      sr = ServiceResponse.new(resp).ok!
-      if block_given?
-        yield(sr)
-      else
-        sr
-      end
+      ServiceResponse.new(resp).ok!
     end
   end
 end
